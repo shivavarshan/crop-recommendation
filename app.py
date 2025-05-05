@@ -1,40 +1,57 @@
-import streamlit as st
-import pandas as pd
+from flask import Flask, render_template, request, redirect, url_for, flash
 import pickle
 import os
+import pandas as pd
 
+app = Flask(__name__)
+
+# Load model from disk
 model_path = os.path.join(os.getcwd(), 'classifier_rf.pkl')
 
-# Check if the model file exists
-if os.path.exists(model_path):
-    model = pickle.load(open(model_path, 'rb'))
-else:
-    st.error("Model file 'classifier_rf.pkl' not found. Please upload the file.")
-    st.stop()
-
-# Create the Streamlit app
-st.title('Crop Recommendation App')
-
-# Get input values from the user with placeholders
-N = st.number_input('Nitrogen (N)', placeholder='Enter N value (e.g., 90)', value=None)
-P = st.number_input('Phosphorus (P)', placeholder='Enter P value (e.g., 42)', value=None)
-K = st.number_input('Potassium (K)', placeholder='Enter K value (e.g., 43)', value=None)
-temperature = st.number_input('Temperature (°C)', placeholder='Enter temperature in Celsius (e.g., 20.88)', value=None)
-humidity = st.number_input('Humidity (%)', placeholder='Enter humidity percentage (e.g., 82.00)', value=None)
-ph = st.number_input('pH', placeholder='Enter pH value (e.g., 6.50)', value=None)
-rainfall = st.number_input('Rainfall (mm)', placeholder='Enter rainfall in millimeters (e.g., 202.94)', value=None)
-
-# Check if all inputs are provided
-if st.button('Submit'):
-    if None in [N, P, K, temperature, humidity, ph, rainfall]:
-        st.warning("Please fill in all the input fields!")
+def load_model():
+    if os.path.exists(model_path):
+        with open(model_path, 'rb') as f:
+            model = pickle.load(f)
+        return model
     else:
-        # Create a dataframe from the input values
-        input_data = pd.DataFrame([[N, P, K, temperature, humidity, ph, rainfall]],
-                                  columns=['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall'])
+        return None
 
-        # Make prediction using the loaded model
-        prediction = model.predict(input_data)[0]
+model = load_model()
 
-        # Display the prediction with custom styling
-        st.markdown(f'<p class="result">The recommended crop for the given conditions is: {prediction}</p>', unsafe_allow_html=True)
+if model is None:
+    print("Model not found! Please ensure the 'classifier_rf.pkl' file exists.")
+
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    if request.method == 'POST':
+        try:
+            # Retrieve form data
+            N = float(request.form['N'])
+            P = float(request.form['P'])
+            K = float(request.form['K'])
+            temperature = float(request.form['temperature'])
+            humidity = float(request.form['humidity'])
+            ph = float(request.form['ph'])
+            rainfall = float(request.form['rainfall'])
+            
+            # Validate input data
+            if None in [N, P, K, temperature, humidity, ph, rainfall]:
+                flash("Please fill in all fields correctly.", "error")
+                return redirect(url_for('home'))
+            
+            # Create DataFrame for prediction
+            input_data = pd.DataFrame([[N, P, K, temperature, humidity, ph, rainfall]],
+                                      columns=['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall'])
+
+            # Make prediction
+            prediction = model.predict(input_data)[0]
+            
+            return render_template('index.html', prediction=prediction)
+        except Exception as e:
+            flash(f"Error: {str(e)}", "error")
+            return redirect(url_for('home'))
+
+    return render_template('index.html', prediction=None)
+
+if __name__ == "__main__":
+    app.run(debug=True)

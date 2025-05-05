@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Recommendation App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .form-container {
+            margin: 0 auto;
+            max-width: 600px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error {
+            color: red;
+        }
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Crop Recommendation App</h1>
+
+<!-- Display Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <ul>
+            {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
+
+<!-- Form for Input -->
+<div class="form-container">
+    <form method="POST">
+        <label for="N">Nitrogen (N):</label>
+        <input type="number" name="N" step="any" required>
+
+        <label for="P">Phosphorus (P):</label>
+        <input type="number" name="P" step="any" required>
+
+        <label for="K">Potassium (K):</label>
+        <input type="number" name="K" step="any" required>
+
+        <label for="temperature">Temperature (°C):</label>
+        <input type="number" name="temperature" step="any" required>
+
+        <label for="humidity">Humidity (%):</label>
+        <input type="number" name="humidity" step="any" required>
+
+        <label for="ph">pH:</label>
+        <input type="number" name="ph" step="any" required>
+
+        <label for="rainfall">Rainfall (mm):</label>
+        <input type="number" name="rainfall" step="any" required>
+
+        <button type="submit">Submit</button>
+    </form>
+</div>
+
+<!-- Display Result -->
+{% if prediction %}
+    <div class="result">
+        <p>The recommended crop for the given conditions is: {{ prediction }}</p>
+    </div>
+{% endif %}
+
+</body>
+</html>
