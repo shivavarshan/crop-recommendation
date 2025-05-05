@@ -1,9 +1,16 @@
 import streamlit as st
 import pandas as pd
 import pickle
+import os
 
-# Load the trained model
-model = pickle.load(open('classifier_rf.pkl', 'rb'))
+model_path = os.path.join(os.getcwd(), 'classifier_rf.pkl')
+
+# Check if the model file exists
+if os.path.exists(model_path):
+    model = pickle.load(open(model_path, 'rb'))
+else:
+    st.error("Model file 'classifier_rf.pkl' not found. Please upload the file.")
+    st.stop()
 
 # Create the Streamlit app
 st.title('Crop Recommendation App')
